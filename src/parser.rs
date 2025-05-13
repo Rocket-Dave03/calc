@@ -183,7 +183,7 @@ mod error {
             match self {
                 ExpressionParseError::UnexpectedToken(t) => write!(f, "unexpected token '{t:?}'"),
                 ExpressionParseError::EndOfInput(expectation) => {
-                    write!(f, "expected {expectation} reached end of input")
+                    write!(f, "expected {expectation}, reached end of input")
                 }
             }
         }
