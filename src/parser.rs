@@ -157,8 +157,25 @@ mod error {
         }
     }
 
+    #[derive(Debug)]
+    pub enum ExpressionParseError {
+        UnexpectedToken(Token),
+        EndOfInput(String), // Expected token name in String
+    }
+
+    impl Display for ExpressionParseError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                ExpressionParseError::UnexpectedToken(t) => write!(f, "unexpected token '{t:?}'"),
+                ExpressionParseError::EndOfInput(expectation) => {
+                    write!(f, "expected {expectation} reached end of input")
+                }
+            }
+        }
+    }
 
     impl Error for LexError {}
+    impl Error for ExpressionParseError {}
 }
 pub fn lex(src: impl AsRef<str>) -> Result<Vec<token::Token>, LexError> {
     let mut tokens = Vec::new();
@@ -178,4 +195,31 @@ pub fn lex(src: impl AsRef<str>) -> Result<Vec<token::Token>, LexError> {
         tokens.push(t?);
     }
     Ok(tokens)
+}
+
+pub fn parse(src: &[Token]) -> Result<Expression, ExpressionParseError> {
+    let lhs = Expression::Number(match parse_token(src, false)? {
+        Token::Number(n) => n,
+        Token::Operator(_) => unreachable!(),
+    });
+    todo!()
+    // let op = Box::new(Operator{})
+}
+
+fn parse_token(src: &[Token], expecting_op: bool) -> Result<Token, ExpressionParseError> {
+    match src.first() {
+        Some(t) => match t {
+            Token::Operator(_) if expecting_op => Ok(*t),
+            Token::Number(_) if !expecting_op => Ok(*t),
+            t => Err(ExpressionParseError::UnexpectedToken(*t)),
+        },
+        None => match expecting_op {
+            true => Err(ExpressionParseError::EndOfInput(
+                "Token::Operator".to_string(),
+            )),
+            false => Err(ExpressionParseError::EndOfInput(
+                "Token::Number".to_string(),
+            )),
+        },
+    }
 }
