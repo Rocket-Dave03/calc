@@ -47,7 +47,15 @@ fn main() {
                                 continue;
                             }
                         };
-                        println!("{tokens:?}")
+                        println!("{tokens:?}");
+                        let expr = match parser::parse(&tokens) {
+                            Ok(e) => e,
+                            Err(err) => {
+                                println!("Error: {err}");
+                                continue;
+                            }
+                        };
+                        parser::util::print_tree(&expr);
                     }
                 }
             }
