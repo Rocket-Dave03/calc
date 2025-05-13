@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use std::fmt::Display;
 
-use error::{ExpressionParseError, LexError};
+use error::{ExpressionParseError, LexError, UnknownOperatorTypeError};
 use token::Token;
 
 #[derive(Debug, Clone)]
@@ -36,6 +36,21 @@ impl Display for OperatorType {
             OperatorType::Div => write!(f, "OpDiv"),
             OperatorType::Pow => write!(f, "OpPow"),
             OperatorType::Mod => write!(f, "OpMod"),
+        }
+    }
+}
+
+impl TryFrom<char> for OperatorType {
+    type Error = UnknownOperatorTypeError;
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        match value {
+            '+' => Ok(OperatorType::Add),
+            '-' => Ok(OperatorType::Sub),
+            '*' => Ok(OperatorType::Mul),
+            '/' => Ok(OperatorType::Div),
+            '^' => Ok(OperatorType::Pow),
+            '%' => Ok(OperatorType::Mod),
+            c => Err(c.into()),
         }
     }
 }
@@ -174,8 +189,32 @@ mod error {
         }
     }
 
+    #[derive(Debug, Clone, Copy)]
+    pub struct UnknownOperatorTypeError {
+        op: char,
+    }
+
+    impl UnknownOperatorTypeError {
+        fn from(c: char) -> Self {
+            Self { op: c }
+        }
+    }
+
+    impl Display for UnknownOperatorTypeError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "unknown operator tyoe '{}'", self.op)
+        }
+    }
+
+    impl From<char> for UnknownOperatorTypeError {
+        fn from(value: char) -> Self {
+            Self::from(value)
+        }
+    }
+
     impl Error for LexError {}
     impl Error for ExpressionParseError {}
+    impl Error for UnknownOperatorTypeError {}
 }
 pub fn lex(src: impl AsRef<str>) -> Result<Vec<token::Token>, LexError> {
     let mut tokens = Vec::new();
