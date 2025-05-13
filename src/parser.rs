@@ -1,6 +1,7 @@
 #![allow(dead_code)]
-use std::{error::Error, fmt::Display, num::ParseIntError};
+use std::fmt::Display;
 
+use error::{ExpressionParseError, LexError};
 use token::Token;
 
 #[derive(Debug, Clone)]
@@ -128,31 +129,37 @@ mod token {
     }
 }
 
-#[derive(Debug)]
-pub enum LexError {
-    InvalidNumber(ParseIntError),
-    InvalidOperator(char),
-    UnknownInput(String),
-}
+mod error {
+    use std::{error::Error, fmt::Display, num::ParseIntError};
 
-impl From<ParseIntError> for LexError {
-    fn from(value: ParseIntError) -> Self {
-        Self::InvalidNumber(value)
+    use super::token::Token;
+
+    #[derive(Debug)]
+    pub enum LexError {
+        InvalidNumber(ParseIntError),
+        InvalidOperator(char),
+        UnknownInput(String),
     }
-}
 
-impl Display for LexError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            LexError::InvalidNumber(e) => write!(f, "{e}"),
-            LexError::InvalidOperator(c) => write!(f, "invalid operator '{c}'"),
-            LexError::UnknownInput(s) => write!(f, "unknown input: {s}"),
+    impl From<ParseIntError> for LexError {
+        fn from(value: ParseIntError) -> Self {
+            Self::InvalidNumber(value)
         }
     }
+
+    impl Display for LexError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                LexError::InvalidNumber(e) => write!(f, "{e}"),
+                LexError::InvalidOperator(c) => write!(f, "invalid operator '{c}'"),
+                LexError::UnknownInput(s) => write!(f, "unknown input: {s}"),
+            }
+        }
+    }
+
+
+    impl Error for LexError {}
 }
-
-impl Error for LexError {}
-
 pub fn lex(src: impl AsRef<str>) -> Result<Vec<token::Token>, LexError> {
     let mut tokens = Vec::new();
     for s in src.as_ref().split_whitespace() {
