@@ -64,8 +64,4 @@ fn main() {
             }
         }
     }
-
-    let inp = "1 + 2 * 3";
-    let tokens = parser::lex(inp);
-    println!("{tokens:?}");
 }
