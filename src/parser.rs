@@ -241,8 +241,25 @@ pub fn parse(src: &[Token]) -> Result<Expression, ExpressionParseError> {
         Token::Number(n) => n,
         Token::Operator(_) => unreachable!(),
     });
-    todo!()
-    // let op = Box::new(Operator{})
+    let op_tok = match parse_token(&src[1..], true) {
+        Ok(t) => t,
+        Err(e) => match e {
+            ExpressionParseError::UnexpectedToken(t) => {
+                return Err(ExpressionParseError::UnexpectedToken(t));
+            }
+            ExpressionParseError::EndOfInput(_) => return Ok(lhs),
+        },
+    };
+    Ok(Expression::Op(Box::new(Operator {
+        typ: match op_tok {
+            Token::Number(n) => {
+                return Err(ExpressionParseError::UnexpectedToken(Token::Number(n)));
+            }
+            Token::Operator(op) => op.try_into().unwrap(),
+        },
+        lhs,
+        rhs: { parse(&src[2..])? },
+    })))
 }
 
 fn parse_token(src: &[Token], expecting_op: bool) -> Result<Token, ExpressionParseError> {
