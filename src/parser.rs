@@ -39,9 +39,17 @@ impl Display for OperatorType {
         }
     }
 }
-
 impl TryFrom<char> for OperatorType {
     type Error = UnknownOperatorTypeError;
+
+    /// Atempt converting a char that represents an operator to its [OperatorType]
+    ///
+    /// Eg.
+    /// ```
+    ///# use calc::parser::OperatorType;
+    ///let typ: OperatorType = '+'.try_into().unwrap();
+    ///assert_eq!(typ, OperatorType::Add);
+    /// ```
     fn try_from(value: char) -> Result<Self, Self::Error> {
         match value {
             '+' => Ok(OperatorType::Add),
@@ -94,6 +102,7 @@ impl BindingPower {
 pub mod util {
     use crate::parser::Expression;
 
+    /// Display a the operator tree of an [Expression]
     pub fn print_tree(expr: &Expression) {
         print_tree_inner(expr, false, 0, false);
         println!()
